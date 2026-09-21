@@ -3,9 +3,16 @@ const coin = document.getElementById("coin");
 const basket = document.getElementById("basket");
 const scoreDisplay = document.getElementById("score");
 const timeDisplay = document.getElementById("time");
+const levelDisplay = document.getElementById("level");
+const highScoreDisplay = document.getElementById("highScore");
+highScoreDisplay.textContent = highScore;
 const restartBtn = document.getElementById("restartBtn");
+const pauseBtn = document.getElementById("pauseBtn");
+let paused = false;
 
 let score = 0;
+let level = 1;
+let highScore = localStorage.getItem("highScore") || 0;
 let time = 30;
 let coinX = 220;
 let coinY = 20;
@@ -13,7 +20,7 @@ let basketX = 220;
 let gameRunning = true;
 
 function moveBasket(direction) {
-    if (!gameRunning) return;
+    if (!gameRunning || paused) return;
 
     basketX += direction * 25;
 
@@ -39,9 +46,9 @@ document.addEventListener("keydown", function(event) {
 });
 
 function moveCoin() {
-    if (!gameRunning) return;
+    if (!gameRunning || paused) return;
 
-    coinY += 5;
+    coinY += 5 + (level - 1) * 1;
     coin.style.top = coinY + "px";
 
     // Check if coin reaches the basket
@@ -51,8 +58,17 @@ function moveCoin() {
         coinX < basketX + 60
     ) {
         score++;
-        scoreDisplay.textContent = score;
-        resetCoin();
+scoreDisplay.textContent = score;
+
+level = Math.floor(score / 5) + 1;
+levelDisplay.textContent = level;
+
+if (score > highScore) {
+    highScore = score;
+    localStorage.setItem("highScore", highScore);
+}
+
+resetCoin();
     }
 
     // Coin missed
@@ -75,7 +91,9 @@ function startTimer() {
             clearInterval(timer);
             return;
         }
-
+        if (paused) {
+            return;
+        }
         time--;
         timeDisplay.textContent = time;
 
